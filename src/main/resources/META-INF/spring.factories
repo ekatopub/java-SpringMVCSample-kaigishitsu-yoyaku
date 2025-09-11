@@ -1,0 +1,3 @@
+# spring.factories
+
+org.thymeleaf.spring.expression.IExpressionObjectFactory=org.thymeleaf.extras.java8time.expression.TemporalExpressionFactory

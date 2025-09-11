@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
 	<title>Sample Login</title>
-	<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}"> 
+	<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+	<link rel="stylesheet" th:href="@{/custom.css}">
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>	
 	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}" defer></script>
-
+	<script th:src="@{/webjars/jquery/jquery.min.js}" defer></script>
 </head>
-
-<body>
-<body class="bg-light"> 
+<body class="bg-light"> <!-- <body> -->
+	<div class="content">
 	<div class="text-center">
-		<h2 class="text-center" th:text="#{login.title}"></h2>
-	    <form id="login_form" method="post" th:action="@{/login}" th:object="${loginModel}">
+		<h2 th:text="#{login.title}"></h2>
+	    <form id="login_form" method="post" th:action="@{/login}" th:object="${loginModel}"><!--actionがSpring Securityの認証プロセスを開始するために必要 -->
 		<!-- Spring Securityのエラーメッセージ -->
 <!--		<p th:if="${session['SPRING_SECURITY_LAST_EXCEPTION']} != null" th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}" class="text-danger">-->
 			<!-- Spring Security + IDを使ったエラーメッセージ -->
 			<p th:if="${errorMessage}" th:text="${errorMessage}" class="text-danger"></p>
-		</p>
+			<!-- AOP+多言語対応を使ったSpring Securityのデフォルトメッセージ表示 -->
+			<!-- <p th:if="${param.error}" th:text="#{AbstractUserDetailsAuthenticationProvider.badCredentials}" class="text-danger"></p>-->
 		
 		<!-- ユーザーID -->
 		<div class="form-group">
@@ -31,6 +33,7 @@
 		</div>
     <input type="submit" th:value="#{login.button}" class="btn btn-primary">
 	</form>
+	<div class="work-history">
 	<label>作成履歴：</label>
 	<table align="center">
 	<thead>
@@ -46,6 +49,8 @@
 	</tr>
 	</tbody>
 	</table>
+	</div>
+</div>
 </div>
 </body>
 </html>

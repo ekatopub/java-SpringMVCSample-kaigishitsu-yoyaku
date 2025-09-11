@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,13 +18,14 @@ import com.example.demo.repository.UserRepository;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    @Autowired
-    private MessageSource messageSource;
 
     private final UserRepository userRepository;
+    private final MessageSource messageSource;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    //コンストラクタインジェクション
+    public UserDetailsServiceImpl(UserRepository userRepository,MessageSource messageSource) {
         this.userRepository = userRepository;
+        this.messageSource = messageSource;
     }
 
     @Override
@@ -33,8 +33,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         // データベースからユーザー情報を取得
         User user = userRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(
+                .orElseThrow(() -> new UsernameNotFoundException(//ユーザーが見つからない場合
                         messageSource.getMessage("1", null, Locale.JAPAN)));
+        //あとはSpring SecurityのExceptionTranslationFilterがこの例外をキャッチして
+        //ログインページにリダイレクトしてくれるのでそれに任せればOK
+        
 
         // --- debug ---
         // データベースから取得したハッシュ化済みパスワードをコンソールに出力

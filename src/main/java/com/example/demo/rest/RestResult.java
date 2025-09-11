@@ -2,7 +2,7 @@ package com.example.demo.rest;
 
 // RESTでは、int型の結果と任意の型の内容が組み合わさったオブジェクトを返す必要がある
 // （そうしない場合は、.doneではなく.failへ制御が移る）
-public class RestResult {
+public class RestResult { //REST学習用
 
     // リターンコード
     private int resultCode;

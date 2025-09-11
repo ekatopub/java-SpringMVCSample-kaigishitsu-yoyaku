@@ -9,7 +9,7 @@ import com.example.demo.model.MyModel;
 
 @RestController
 @RequestMapping("/form")
-public class MyRestController {
+public class MyRestController {  //REST学習用　ただ表示するだけ
 
     @PostMapping("/rest")
     public RestResult restForm(@ModelAttribute MyModel myModel) {

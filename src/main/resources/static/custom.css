@@ -1,0 +1,34 @@
+/* メインコンテンツのスタイル設定 */
+.content {
+  margin: 20px;
+  padding: 10px;
+}
+.form{
+  margin: 20px;
+  padding: 10px;
+}
+
+.flex-container{
+	display: flex;
+	justify-content: flex-end; /* 子要素をコンテナの終端（右端）に配置 */
+}
+.display-login-username{
+	margin-top:0.5em;
+	margin-bottom:0.5em;
+}
+.work-history{
+	margin-top:2em;
+	margin-bottom:2em;
+}
+
+/* 画面幅が900px以上の場合に適用されるスタイル */
+@media (min-width: 900px) {
+  body {
+    font-size: 18px; /* フォントサイズを大きくする */
+  }
+  .content {
+	max-width: 800px;
+    margin: 20px auto;
+    padding: 10px;
+  }
+}

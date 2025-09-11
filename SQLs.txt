@@ -1,0 +1,82 @@
+-- ユーザーテーブル (user)
+CREATE TABLE `user` (
+    `user_id` CHAR(4) NOT NULL,
+    `password` VARCHAR(100) NOT NULL,
+    `user_name` VARCHAR(10),
+    PRIMARY KEY (`user_id`)
+) 
+
+-- 会議室マスタテーブル (m_room)
+CREATE TABLE `m_room` (
+    `id` INT(10) NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(10) NOT NULL,
+    `is_deleted` BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id`)
+) 
+
+-- 時間帯マスタテーブル (m_time)
+CREATE TABLE `m_time` (
+    `id` INT(10) NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(10) NOT NULL,
+    `is_deleted` BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id`)
+) 
+
+-- 予約情報テーブル (t_reservation)
+CREATE TABLE `t_reservation` (
+    `id` INT(10) NOT NULL AUTO_INCREMENT,
+    `user_id` CHAR(4) NOT NULL,
+    `res_date` TIMESTAMP NOT NULL,
+    `room_id` INT(10) NOT NULL,
+    `time_id` INT(10) NOT NULL,
+    `is_deleted` BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`),
+    FOREIGN KEY (`room_id`) REFERENCES `m_room`(`id`),
+    FOREIGN KEY (`time_id`) REFERENCES `m_time`(`id`)
+) 
+
+
+会議室マスタテーブル (m_room) にデータを登録するSQL
+
+INSERT INTO `m_room` (`name`) VALUES
+('会議室1'),
+('会議室2'),
+('会議室3'),
+('会議室4'),
+('会議室5'),
+('会議室6'),
+('会議室7');
+
+時間帯マスタテーブル (m_time) にデータを登録するSQL
+
+INSERT INTO `m_time` (`name`) VALUES
+('9時'),
+('10時'),
+('11時'),
+('12時'),
+('13時'),
+('14時'),
+('15時'),
+('16時'),
+('17時');
+
+INSERT INTO `user` (`user_id`, `password`, `user_name`) VALUES
+('0001', 'password01', 'テストユーザー1'),
+('0002', 'password02', 'テストユーザー2'),
+('0003', 'password03', 'テストユーザー3'),
+('0004', 'password04', 'テストユーザー4');
+
+元のパスワード: password01
+ハッシュ化されたパスワード: $2a$10$CT.cEzEDrsM1t4SRk1C5MeAuS2qgmE2BRHEJ/o0gWIxvayejF4OUm
+----------------------------------------
+元のパスワード: password02
+ハッシュ化されたパスワード: $2a$10$CQaIWSwT8vdPFXuJHL9OmOMXBHefYWehmF.VCP6.H6xqi23.4sAhe
+----------------------------------------
+元のパスワード: password03
+ハッシュ化されたパスワード: $2a$10$N3T3pVu1ogMdNjfiwE33beFxFJ8H0bjTzGn0wypKt5YDF3A3BoGZO
+----------------------------------------
+元のパスワード: password04
+ハッシュ化されたパスワード: $2a$10$81OThUg/kHXGR5H4xfpjCeXQnQ1rpr9F8bO.D4RncODUfLZjtWIbi
+----------------------------------------
+

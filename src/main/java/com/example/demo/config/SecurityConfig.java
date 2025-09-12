@@ -20,6 +20,10 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
     @Autowired
     private UserDetailsService userDetailsService;
+    
+    @Autowired
+    private AuthenticationFailureHandler customAuthenticationFailureHandler; // カスタムハンドラ
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,7 +47,7 @@ public class SecurityConfig {
                 .passwordParameter("password")
                 .defaultSuccessUrl("/reservation/", true)
                // .permitAll()
-                .failureHandler(authenticationFailureHandler()) // カスタムハンドラ
+                .failureHandler(customAuthenticationFailureHandler) // カスタムハンドラ
             )
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))

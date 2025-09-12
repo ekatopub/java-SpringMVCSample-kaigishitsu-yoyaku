@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
 <head>
     <meta charset="UTF-8">
 
-    <title>掲示板</title>
+    <title>会議室予約</title>
 	<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/custom.css}">
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -15,26 +15,54 @@
 </head>
 <body>
 	<div class="content">
-    <h1>掲示板</h1>
-	<form th:action="@{/logout}" method="post">
-	    <div class="flex-container"><button type="submit" class="btn btn-secondary">ログアウト</button></div>
-	</form>
-	<div class="flex-container display-login-username"><div>ログインしているユーザー: <span th:text="${userName}"></span></div></div>
-	
-	<h2>新規投稿</h2>
 
+
+	<div class="container mt-4">
+	    <div class="d-flex justify-content-between align-items-center mb-3">
+	        <h2>会議室予約画面</h2>
+	        <div>
+	            <span th:text="${userName}" class="mr-3"></span>
+	            <form th:action="@{/logout}" method="post" style="display:inline;">
+	                <button type="submit" class="btn btn-secondary btn-sm">ログアウト</button>
+	            </form>
+	        </div>
+	    </div>
+
+	    <div class="text-center mb-3">
+	        <a th:href="@{/reservation?date=${previousDate}}" class="btn btn-primary">前日</a>
+	        <h3 class="d-inline-block mx-3" th:text="${displayDate}">YYYY/MM/DD</h3>
+	        <a th:href="@{/reservation?date=${nextDate}}" class="btn btn-primary">翌日</a>
+	    </div>
+
+	<form id="reservationForm" action="#" method="post">
+		<table class="table table-bordered text-center"><!-- 行（<tr>）が会議室名、列（<td>）が時間帯 -->
+		        <thead>
+		            <tr>
+		                <th>会議室名</th>
+		                <th th:each="time : ${timeList}" th:text="${time.timeName}">HH:MM ~ HH:MM</th>
+		            </tr>
+		        </thead>
+		        <tbody>
+		            <tr th:each="room : ${roomList}">
+		                <td th:text="${room.roomName}">会議室名</td>
+		                <td th:each="time : ${timeList}">
+		                    <input type="checkbox" name="reservation">
+		                </td>
+		            </tr>
+		        </tbody>
+		    </table>
+
+			<div class="d-flex justify-content-end mt-3">
+			     <button type="submit" class="btn btn-primary">予約・解除</button>
+			</div>
+	</form>
+
+		
+	</div><!-- <div class="container mt-4"> -->
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	</div>
-	<script th:src="@{/reservation.js}"></script>
+	</div><!-- <div class="content"> -->
+<script th:src="@{/reservation.js}"></script>
 
 </body>
 </html>

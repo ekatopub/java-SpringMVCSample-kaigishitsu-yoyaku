@@ -1,8 +1,9 @@
 package com.example.demo.service;
 
-import com.example.demo.model.User;
-import java.util.Optional;
+import org.springframework.stereotype.Service;
 
+@Service
 public interface UserService {
- String findUserNameByUserId(String userId);
+
+    String findUserNameByUserId(String userId);
 }

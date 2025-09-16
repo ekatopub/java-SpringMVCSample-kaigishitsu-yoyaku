@@ -6,9 +6,9 @@
     <title>会議室予約</title>
 	<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/custom.css}">
-	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}" defer></script>
+	<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script> -->
 	<script th:src="@{/webjars/jquery/jquery.min.js}" defer></script>
+	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}" defer></script>
 	<meta name="_csrf" th:content="${_csrf.token}"><!-- CSRFエラー対策 -->
 	<meta name="_csrf_header" th:content="${_csrf.headerName}"><!-- CSRFエラー対策 -->
 
@@ -34,7 +34,8 @@
 	        <a th:href="@{/reservation?date=${nextDate}}" class="btn btn-primary">翌日</a>
 	    </div>
 
-	<form id="reservationForm" action="#" method="post">
+	<form id="reservationForm" action="@{/reservation/process}" method="post">
+		<input type="hidden" name="date" th:value="${displayDateRaw}" /><!-- POST送信時に date パラメータがコントローラーの @RequestParam("date") に渡される -->
 		<table class="table table-bordered text-center"><!-- 行（<tr>）が会議室名、列（<td>）が時間帯 -->
 		        <thead>
 		            <tr>
@@ -42,12 +43,18 @@
 		                <th th:each="time : ${timeList}" th:text="${time.timeName}">HH:MM ~ HH:MM</th>
 		            </tr>
 		        </thead>
-		        <tbody>
+		        <tbody><!--    <input type="checkbox" name="reservation"> 仮表示用-->
 		            <tr th:each="room : ${roomList}">
-		                <td th:text="${room.roomName}">会議室名</td>
-		                <td th:each="time : ${timeList}">
-		                    <input type="checkbox" name="reservation">
+						<td th:text="${room.roomName}">会議室名</td>
+						<th:block th:each="time : ${timeList}">
+						<td>	
+							<input type="checkbox"
+									th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+									value="true"
+									th:checked="${reservedKeys.contains(room.id + '_' + time.id)}">
+
 		                </td>
+						</th:block>
 		            </tr>
 		        </tbody>
 		    </table>
@@ -63,6 +70,32 @@
 	
 	</div><!-- <div class="content"> -->
 <script th:src="@{/reservation.js}"></script>
+<!-- 	<input type="checkbox"
+			th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+			value="true"
+			th:checked="${#lists.any(reservedList, r -> r.getRoomId().equals(room.id) and r.getTimeId().equals(time.id))}">
+			th:checked="${#lists.any(reservedList, r -> r.roomId.equals(room.id) and r.timeId.equals(time.id))}">
+			th:checked="${room.id != null and time.id != null and #lists.any(reservedList, r -> r.roomId.equals(room.id) and r.timeId.equals(time.id))}">
+			th:checked="${room.id != null and time.id != null  and reservedList != null and #lists.any(reservedList, r -> r.roomId.equals(room.id) and r.timeId.equals(time.id))}">
+			thymeleafのバージョンによってはラムダ式が使えない
+			<td th:each="time : ${timeList}">
+			    <input type="checkbox"
+			           th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+			           value="true"
+			           th:checked="${false}">
 
+			    <span th:each="reserved : ${reservedList}">
+			        <th:block th:if="${reserved.roomId == room.id and reserved.timeId == time.id}">
+			            <input type="checkbox"
+			                   th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+			                   value="true"
+			                   th:checked="${true}">
+			        </th:block>
+			    </span>
+			</td>
+			
+-->
+
+	<!-- もしリストが空でなければ、このチェックボックスをチェック状態にする  -->
 </body>
 </html>

@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.demo.model.MRoom;
 
-public interface MRoomRepository extends JpaRepository<MRoom, String> {
-    List<MRoom> findAllByOrderByRoomIdAsc();
+public interface MRoomRepository extends JpaRepository<MRoom, Integer> {
+    List<MRoom> findAllByOrderByIdAsc();
 }

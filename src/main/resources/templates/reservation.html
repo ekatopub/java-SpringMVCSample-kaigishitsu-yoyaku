@@ -29,9 +29,9 @@
 	    </div>
 
 	    <div class="text-center mb-3">
-	        <a th:href="@{/reservation?date=${previousDate}}" class="btn btn-primary">前日</a>
+	        <a th:href="@{/reservation(date=${previousDate})}" class="btn btn-primary">前日</a>
 	        <h3 class="d-inline-block mx-3" th:text="${displayDate}">YYYY/MM/DD</h3>
-	        <a th:href="@{/reservation?date=${nextDate}}" class="btn btn-primary">翌日</a>
+	        <a th:href="@{/reservation(date=${nextDate})}" class="btn btn-primary">翌日</a>
 	    </div>
 		
 		

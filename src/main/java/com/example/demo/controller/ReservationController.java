@@ -5,10 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.model.MRoom;
 import com.example.demo.model.MTime;
-import com.example.demo.model.TReservation;
 import com.example.demo.service.ReservationData;
 import com.example.demo.service.ReservationService;
 import com.example.demo.service.UserService;
@@ -47,34 +44,39 @@ public class ReservationController {
     }//Springは、コンストラクタの引数にUserServiceインターフェースが指定されていると、自動的にその唯一の実装クラス（UserServiceImpl）を探して注入してくれる
 	
 
-    @GetMapping("/") //  .defaultSuccessUrl("/reservation/", true)の最後のスラッシュに対応
+    @GetMapping({"/", ""}) //  .defaultSuccessUrl("/reservation/", true)の最後のスラッシュに対応
     public String getReservationPage(
     	       Model model,
-    	        @RequestParam("date") Optional<String> dateStr
-    	    ) {
+    	        @RequestParam(value = "date", required = false) String dateStr) {
     	
         // ロガーを使用してデバッグログを出力       	
         logger.debug("getReservationPage is called");
     	
         // ログインユーザーのユーザー名を取得してモデルに追加
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        model.addAttribute("userName", userService.findUserNameByUserId(currentUsername));
+        String userId = authentication.getName();
+        model.addAttribute("userName", userService.findUserNameByUserId(userId));
     	
      // 日付の処理
+        /*
         LocalDate today = LocalDate.now();
         LocalDate displayDate = dateStr.map(LocalDate::parse).orElse(today);
-        
+        */
+        // 日付の処理
+        LocalDate displayDate = (dateStr != null && !dateStr.isEmpty()) ? LocalDate.parse(dateStr) : LocalDate.now();
+        Timestamp date = Timestamp.valueOf(displayDate.atStartOfDay());
+         
+        // 取得したデータをモデルに追加
         model.addAttribute("displayDate", displayDate.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日")));
         model.addAttribute("previousDate", displayDate.minusDays(1));
         model.addAttribute("nextDate", displayDate.plusDays(1));
+        model.addAttribute("displayDateRaw", displayDate.toString());
+        
 
         // マスタデータを取得
         List<MTime> timeList = reservationService.getAllTimes();
         List<MRoom> roomList = reservationService.getAllRooms();
-        
-
-        
+                
         // 取得したデータをモデルに追加
         model.addAttribute("timeList", timeList);
         model.addAttribute("roomList", roomList);
@@ -90,7 +92,7 @@ public class ReservationController {
         List<TReservation> reservedList = reservationService.getReservedListByDate(timestamp);
         model.addAttribute("displayDateRaw", displayDate.toString());
         model.addAttribute("reservedList", reservedList);
-        */
+
         LocalDate targetDate = dateStr.map(LocalDate::parse).orElse(LocalDate.now());
         model.addAttribute("displayDateRaw", targetDate.toString());
 
@@ -102,11 +104,23 @@ public class ReservationController {
 
         // 予約取得（範囲指定）
         List<TReservation> reservedList = reservationService.getReservedListBetween(startTimestamp, endTimestamp);
-
+        */
         
         
         
-
+        // サービス経由で予約データを取得
+        Set<String> reservedKeys = reservationService.getReservedKeys(date);
+        Set<String> myReservedKeys = reservationService.getMyReservedKeys(date, userId);
+        // 取得したデータをモデルに追加
+        model.addAttribute("reservedKeys", reservedKeys);
+        model.addAttribute("myReservedKeys", myReservedKeys);
+        // ロガーを使用してデバッグログを出力       	
+        logger.debug("取得した予約リストreservedKeys: {}", reservedKeys);
+        logger.debug("取得した予約リストmyReservedKeys: {}", myReservedKeys);
+        
+        
+        
+        /*
         //logger.debug("取得した予約リストreservedList: {}", reservedList);
         for (TReservation r : reservedList) {
             logger.debug("Debug reserved: room_id={}, time_id={}", r.getRoomId(), r.getTimeId());
@@ -122,27 +136,28 @@ public class ReservationController {
         
         
         //ラムダ式を使わない方法1
-        /*
-        Set<String> reservedKeys2 = reservedList.stream()
+
+        Set<String> reservedKeys1 = reservedList.stream()
         	    .filter(r -> r.getRoomId() != null && r.getTimeId() != null)
         	    .map(r -> r.getRoomId() + "_" + r.getTimeId())
         	    .collect(Collectors.toSet());
 
-        	model.addAttribute("reservedKeys2", reservedKeys2);
+        	model.addAttribute("reservedKeys1", reservedKeys1);
           */  
         //ラムダ式を使わない方法2	
-        	Set<String> reservedKeys = new HashSet<>();
+        /*
+        	Set<String> reservedKeys2 = new HashSet<>();
         	for (MRoom room : roomList) {
         	    for (MTime time : timeList) {
         	        if (reservationService.isReserved(reservedList, room.getId(), time.getId())) {
-        	            reservedKeys.add(room.getId() + "_" + time.getId());
+        	            reservedKeys2.add(room.getId() + "_" + time.getId());
         	        }
         	    }
         	}
-        	model.addAttribute("reservedKeys", reservedKeys);	
+        	model.addAttribute("reservedKeys2", reservedKeys2);	
             // ロガーを使用してデバッグログを出力       	
-            logger.debug("取得した予約リストreservedKeys: {}", reservedKeys);
-            
+            logger.debug("取得した予約リストreservedKeys2: {}", reservedKeys2);
+            */
             
 
             

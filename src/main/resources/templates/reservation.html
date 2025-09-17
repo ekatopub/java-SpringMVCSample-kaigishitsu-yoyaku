@@ -63,7 +63,7 @@
 								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 								       value="true"
 								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
-									   th:disabled="${!myReservedKeys.contains(room.id + '_' + time.id)}" />
+									   th:disabled="${reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id)}" />
 
 								<input th:if="not ${reservedKeys.contains(room.id + '_' + time.id)}"
 								       type="hidden"

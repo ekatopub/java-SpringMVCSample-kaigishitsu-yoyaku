@@ -1,0 +1,473 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ekato's　sample programs</title>
+  <!-- loads all the styles (including icons and images) from jsDelivr -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/alvaromontoro/almond.css@latest/dist/almond.min.css" />
+  <style>
+    .pass {
+      color: green;
+      font-weight: bold;
+    }
+
+    .fail {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Eiichi Kato Programming Sample</h1>
+  <h2>取得を目指している資格・学習エリア</h2>
+  <ul>
+    <li>OCP　Java SE11　silver（2025.07　合格）</li>
+    <li>サーティファイ　Javaプログラミング能力認定試験（2025.07　2級合格）</li>
+    <li>Python3技術者認定試験（2025.07　基礎試験　合格）</li>
+    <li>応用情報技術者試験/アプリケーション技術者試験　</li>
+    <li>HTML5プロフェッショナル認定試験</li>
+    <li>サーティファイ　C言語プログラミング能力認定試験</li>
+    <li>Pythonプログラミング能力認定試験</li>
+    <li>PHP技術者認定試験/Ruby技術者認定試験</li>
+    <li>中小企業診断士（2025年　1次試験合格）</li>
+    <li>Node.js,TypeScript,React,Vue.js,Flutter,Next.jsなどのモダンアーキテクチャ</li>
+  </ul>
+  <hr />
+  <h2>Javaプログラムサンプル</h2>
+  <h3>java/Spring Boot3 会議室予約システム</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java-SpringMVCSample-kaigishitsu-yoyaku">https://github.com/ekatopub/java-SpringMVCSample-kaigishitsu-yoyaku</a>
+    <br />※参考書籍　絶対にJavaプログラマーになりたい人へ　P681-
+  </p>
+  <div style="text-align:center;"><img src="./images/SpringMVCSample-kaigishitsu-yoyaku.bmp" height="200" width="auto">
+  </div>
+  <h4>開発環境</h4>
+  　<p>windows10 Eclipse2025/03 JavaSE-11</p>
+  <h4>プロジェクト概要</h4>
+  <p>このプロジェクトは<strong>会議室予約システム</strong>を開発するものです。主な機能は以下の通りです。</p>
+
+  <h5>主な機能</h5>
+  <ul>
+    <li><strong>ログイン機能</strong>: ユーザーIDとパスワードでログインします。ユーザーが存在しない場合はエラーメッセージを表示します。</li>
+    <li><strong>予約画面</strong>:
+      <ul>
+        <li>日付、時間帯、会議室を選択して予約できます。</li>
+        <li>自分が予約した場所は水色、他者が予約した場所はグレーで表示されます。</li>
+        <li>ログイン日を初期表示とし、前日・翌日の予約状況も確認できます。</li>
+      </ul>
+    </li>
+    <li><strong>予約・解除機能</strong>:
+      <ul>
+        <li>チェックを入れた部屋と時間帯の組み合わせで予約を登録・解除できます。</li>
+        <li>予約情報は「洗い替え」方式で、以前の登録情報を論理削除し、新しい情報を新規登録します。</li>
+      </ul>
+    </li>
+    <li><strong>ログアウト機能</strong>: ログインセッションを削除し、ログイン画面へ戻ります。</li>
+  </ul>
+
+  <h5>使用技術</h5>
+  <ul>
+    <li><strong>開発言語</strong>: Java</li>
+    <li><strong>フレームワーク</strong>: Java Spring Framework + JPA + Maven </li>
+    <li><strong>データベース</strong>: MariaDB</li>
+  </ul>
+
+  <h5>テーブル設計</h5>
+  <p>システムは4つのテーブルを使用します。</p>
+  <ul>
+    <li><strong>ユーザーテーブル（<code>user</code>）</strong>:
+      ユーザーID（<code>user_id</code>）とパスワード（<code>password</code>）、ユーザー名（<code>user_name</code>）を管理します。</li>
+    <li><strong>予約情報テーブル（<code>t_reservation</code>）</strong>:
+      予約の主情報（ID、ユーザーID、予約日、部屋ID、時間帯IDなど）を管理します。<code>is_deleted</code>フラグで論理削除を扱います。</li>
+    <li><strong>会議室マスタテーブル（<code>m_room</code>）</strong>: 会議室名（<code>name</code>）と削除フラグ（<code>is_deleted</code>）を管理します。
+    </li>
+    <li><strong>時間帯マスタテーブル（<code>m_time</code>）</strong>: 時間帯名（<code>name</code>）と削除フラグ（<code>is_deleted</code>）を管理します。
+    </li>
+  </ul>
+  <h4>会議室予約システム 開発スケジュール</h4>
+
+  <table>
+    <thead>
+      <tr>
+        <th>日目</th>
+        <th>時間</th>
+        <th>タスク</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1日目</td>
+        <td>5時間</td>
+        <td>
+          <strong>環境構築とログイン機能</strong><br>
+          ・環境セットアップ、DBテーブル作成 (1時間)<br>
+          ・ログイン画面のHTML/Thymeleaf、<code>LoginController</code>の作成 (3時間)<br>
+          ・Spring Securityによる認証処理の実装 (1時間)
+        </td>
+      </tr>
+      <tr>
+        <td>2日目</td>
+        <td>5時間</td>
+        <td>
+          <strong>予約画面のUIとマスタデータ表示</strong><br>
+          ・予約画面のHTML/Thymeleaf作成 (2時間)<br>
+          ・<code>m_time</code>と<code>m_room</code>のRepository/Service実装 (3時間)<br>
+          ・マスタデータの動的表示ロジック実装
+        </td>
+      </tr>
+      <tr>
+        <td>3日目</td>
+        <td>5時間</td>
+        <td>
+          <strong>予約機能の実装</strong><br>
+          ・<code>t_reservation</code>のRepository/Service実装 (3時間)<br>
+          ・予約状況の取得と画面への表示（色付け） (2時間)<br>
+          ・「予約/解除」ボタンのPOSTマッピング実装<br>
+          ・DBへの論理削除と新規登録ロジック実装
+        </td>
+      </tr>
+      <tr>
+        <td>4日目</td>
+        <td>5時間</td>
+        <td>
+          <strong>テストと最終確認</strong><br>
+          ・各機能の正常系テスト（ログイン、予約、解除、ログアウト） (3時間)<br>
+          ・異常系テスト（未ログイン時のリダイレクトなど） (2時間)<br>
+          ・バグ修正と画面表示の最終確認
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>苦労した点</h4>
+  <ul>
+    <li>Thymeleaf 3.0.xでラムダ式がうまく動作しなかった</li>
+    <li>他のユーザーの予約を誤って削除できないようにする機能</li>
+    <li>コントローラー、サービス、リポジトリの分離、設計</li>
+  </ul>
+  <hr />
+
+
+  <h3>java/Spring Boot2 掲示板</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java-SpringMVCSample-keijiban">https://github.com/ekatopub/java-SpringMVCSample-keijiban</a>
+    <br />※参考書籍　絶対にJavaプログラマーになりたい人へ　P645-
+  </p>
+
+  <h4>開発環境</h4>
+  　<p>windows10 Eclipse2025/03 JavaSE-11</p>
+  <h4>スケジュール</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>日目</th>
+        <th>時間</th>
+        <th>タスク内容</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1日目</td>
+        <td>5h</td>
+        <td>
+          <p>プロジェクト初期設定とログイン機能の実装</p>
+          <ul>
+            <li>Spring Bootプロジェクトの作成</li>
+            <li>データベース（MariaDB）接続設定</li>
+            <li>Maven依存関係の設定（Spring Security, Thymeleaf, Lombok, etc.）</li>
+            <li>ユーザーテーブルのエンティティ、リポジトリ、サービス、コントローラーの作成</li>
+            <li>Spring Securityによるログイン機能の実装と動作確認</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>2日目</td>
+        <td>5h</td>
+        <td>
+          <p>メイン画面の画面設計と投稿機能の実装</p>
+          <ul>
+            <li>掲示板テーブルのエンティティ、リポジトリ、サービス、コントローラーの作成</li>
+            <li>掲示板メイン画面の画面設計（Thymeleaf）</li>
+            <li>投稿機能の実装（入力チェック含む）</li>
+            <li>投稿データの表示機能の実装</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>3日目</td>
+        <td>5h</td>
+        <td>
+          <p>削除機能とログアウト機能の実装</p>
+          <ul>
+            <li>投稿削除機能の実装（ログインユーザーとの一致チェック含む）</li>
+            <li>ログアウト機能の実装</li>
+            <li>掲示板の表示更新をAjaxで実装</li>
+            <li>画面遷移の動作確認</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>4日目</td>
+        <td>5h</td>
+        <td>
+          <p>エラーハンドリングとAOPによるログ出力の実装</p>
+          <ul>
+            <li>エラーメッセージの国際化対応（messages.properties）</li>
+            <li>入力チェックエラー時のメッセージ表示実装</li>
+            <li>AOPによるログ出力の実装</li>
+            <li>機能結合テスト</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td>5日目</td>
+        <td>5h</td>
+        <td>
+          <p>最終調整とテスト
+          <ul>
+            <li>画面デザインの調整</li>
+            <li>全体テスト（ブラックボックステスト）</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <h4>仕様概要</h4>
+
+  <h5>1. 技術スタック</h5>
+  <ul>
+    <li>開発言語: Java/javascript</li>
+    <li>フレームワーク: Spring Framework (Spring Boot)</li>
+    <li>RDBMS: MariaDB</li>
+    <li>O/Rマッパー: Hibernate (spring-boot-starter-data-jpa)</li>
+    <li>ビルドツール: Maven</li>
+  </ul>
+
+  <h5>2. 機能要件</h5>
+  <ul>
+    <li>ログイン機能: ユーザーIDとパスワードによる認証。認証失敗時はエラーメッセージを表示。パスワードはBCryptでハッシュ化して保存。</li>
+    <li>メイン画面: ログイン後に掲示板一覧を表示。</li>
+    <li>投稿機能: 投稿内容を入力し、データベースに登録。投稿内容は50文字以内の制限あり。</li>
+    <li>削除機能: 自分の投稿のみ削除可能。ログインユーザーと投稿ユーザーが一致する場合にのみ削除ボタンが表示される。</li>
+    <li>ログアウト機能: セッションを破棄し、ログイン画面へ戻る。</li>
+  </ul>
+  <h5>3. 画面設計</h5>
+  <ul>
+    <li>ログイン画面: ユーザーIDとパスワードの入力フォーム、ログインボタン、エラーメッセージ表示エリア（IDまたはパスワードが間違っている場合）。</li>
+    <li>メイン画面: ログアウトボタン、投稿内容入力フォーム、投稿ボタン、投稿一覧表示エリア、および各投稿の削除ボタン（投稿者本人の場合）。</li>
+  </ul>
+  <h4>テストレポート</h4>
+
+  <h5>概要</h5>
+  <ul>
+    <li><strong>プロジェクト名:</strong> SpringBoot掲示板</li>
+    <li><strong>テスト対象:</strong> SpringMVCSampleKeijibanApplication</li>
+    <li><strong>テスト担当者:</strong> 加藤</li>
+    <li><strong>テスト期間:</strong> 2025/09/08</li>
+    <li><strong>テスト環境:</strong> Windows11 Google Chrome バージョン 139.0.7258.157（Official Build）</li>
+  </ul>
+
+  <h5>総合評価</h5>
+  <ul>
+    <li><strong>テスト結果:</strong> [合格 / 不合格 / 条件付き合格]</li>
+    <li><strong>特記事項:</strong> [テスト全体を通しての所見や重要な問題点を簡潔に記載]</li>
+  </ul>
+
+  <hr>
+
+  <h5>テストケース詳細</h5>
+
+  <h6>ログイン機能</h6>
+  <table>
+    <thead>
+      <tr>
+        <th>テストID</th>
+        <th>テスト目的</th>
+        <th>テスト手順</th>
+        <th>期待結果</th>
+        <th>実際の結果</th>
+        <th>合否</th>
+        <th>備考</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FC-01</td>
+        <td>正しいID/PWでログインできるか</td>
+        <td>ID: <code>0003</code> / PW: <code>hogefuga</code> を入力し、ログインボタンをクリックする</td>
+        <td>投稿一覧画面へ遷移する</td>
+        <td>投稿一覧画面へ遷移した</td>
+        <td>[合格]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+      <tr>
+        <td>FC-02</td>
+        <td>無効なID/PWでログインできないか</td>
+        <td>ID: <code>invalid</code> / PW: <code>password</code> を入力し、ログインボタンをクリックする</td>
+        <td>「ユーザーIDまたはパスワードを間違えています」と表示される</td>
+        <td>「ユーザーIDまたはパスワードを間違えています」と表示された</td>
+        <td>[合格]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+      <tr>
+        <td>FC-03</td>
+        <td>英語表示のテスト</td>
+        <td>ブラウザの言語設定を英語に変更し、ID/PWを無効な値に設定する</td>
+        <td>「Invalid user ID or password」と表示される</td>
+        <td>「Invalid user ID or password」と表示された</td>
+        <td>[合格]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h6>投稿機能</h6>
+  <table>
+    <thead>
+      <tr>
+        <th>テストID</th>
+        <th>テスト目的</th>
+        <th>テスト手順</th>
+        <th>期待結果</th>
+        <th>実際の結果</th>
+        <th>合否</th>
+        <th>備考</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>FC-04</td>
+        <td>正常に投稿できるか</td>
+        <td>本文を入力し、投稿ボタンをクリックする</td>
+        <td>投稿がDBに保存され、一覧画面に表示される</td>
+        <td>投稿がDBに保存され、一覧画面に表示された</td>
+        <td>[<span class="pass">合格</span>]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+      <tr>
+        <td>FC-05</td>
+        <td>入力チェックエラー1</td>
+        <td>本文入力欄を空欄にし、投稿ボタンをクリックする</td>
+        <td>「textが入力されていません。」と表示される</td>
+        <td>「textが入力されていません。」と表示された</td>
+        <td>[<span class="pass">合格</span>]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+      <tr>
+        <td>FC-06</td>
+        <td>入力チェックエラー2</td>
+        <td>本文入力欄に50文字以上入力し、投稿ボタンをクリックする</td>
+        <td>「textは、1～50桁で入力して下さい。」と表示される</td>
+        <td>「textは、1～50桁で入力して下さい。」と表示された</td>
+        <td>[<span class="pass">合格</span>]</td>
+        <td>[特記事項]なし</td>
+      </tr>
+      <tr>
+        <td>FC-08</td>
+        <td>削除機能</td>
+        <td>任意のメッセージの削除ボタンをクリックする</td>
+        <td>該当の投稿がDBから削除され、一覧画面からも表示されなくなる</td>
+        <td>該当の投稿がDBから削除され、一覧画面からも表示されなくなった</td>
+        <td>[<span class="pass">合格</span>]</td>
+        <td>[特記事項]他のユーザーの投稿には削除ボタンが表示されないため、他のユーザーの投稿を削除してしまうことはない</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h5>ログ出力確認</h5>
+  <ul>
+    <li>
+      <strong>ログイン時、AOPによってDBアクセスログが出力されているか？</strong><br>
+      <strong>結果:</strong> [<span class="pass">はい</span>]
+    </li>
+    <li>
+      <strong>SQL文の実行ログが正しく出力されているか？</strong><br>
+      <strong>結果:</strong> [<span class="pass">はい</span>]
+    </li>
+    <li>
+      <strong>ログイン失敗時にエラーログが出力されているか？</strong><br>
+      <strong>結果:</strong> [<span class="pass">はい</span>]
+    </li>
+  </ul>
+  <ul>
+    <li><strong>特記事項:</strong> [ログ出力に関しての所見を記載]</li>
+  </ul>
+
+  <hr>
+
+  <h5>未解決の問題点・課題</h5>
+  <ul>
+    <li><strong>課題名:</strong> ここまでについては問題なし</li>
+    <li><strong>内容:</strong> スケジュールの組み方を間違え、修正などで余計な時間がかかった</li>
+    <li><strong>担当者:</strong> 加藤</li>
+    <li><strong>対応状況:</strong> なし</li>
+  </ul>
+  <h4>苦労した点</h4>
+  <ul>
+    <li>Thymeleaf 3.0.xでDateがうまく動作しなかった</li>
+    <li>CSRF対応</li>
+    <li>コントローラー、サービス、リポジトリの分離、設計</li>
+  </ul>
+  <hr />
+
+  <h3>java/Spring3学習用</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java_study_202408_Java_Spring_test/">https://github.com/ekatopub/java_study_202408_Java_Spring_test/</a>
+  </p>
+  <h4>開発環境</h4>
+  　<p>windows10 Eclipse2025/03 JavaSE-11</p>
+  <hr />
+  <h3>java1</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java_study_2024_00_Basic">https://github.com/ekatopub/java_study_2024_00_Basic</a>
+  </p>
+  <h4>開発環境</h4>
+  　<p>windows10 Eclipse JavaSE-11</p>
+  <hr />
+  　<h3>java2</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java_study_2024_01_janken">https://github.com/ekatopub/java_study_2024_01_janken</a>
+  </p>
+  <h4>開発環境</h4>
+  <p>windows10 Eclipse JavaSE-11</p>
+  <hr />
+  <h3>java/JSP3</h3>
+  <p><a
+      href="https://github.com/ekatopub/java_study_202405_JSP_test_with_tomcat/">https://github.com/ekatopub/java_study_202405_JSP_test_with_tomcat/</a>
+  </p>
+  <h4>開発環境</h4>
+  <p>windows10 Eclipse JavaSE-11 Apache Tomcat9</p>
+  <hr />
+
+  <h3>java/SQL1</h3>　
+  <p><a
+      href="https://github.com/ekatopub/java_study_2024_03_SQLtest">https://github.com/ekatopub/java_study_2024_03_SQLtest</a>
+  </p>
+  <h4>開発環境</h4>
+  <p>windows10 Eclipse JavaSE-11</p>
+  <hr />
+  <hr />
+  <h2>phpプログラムサンプル</h2>
+  <h3>ネットショップ　楽天APIから指定KWで商品データをインポート</h3>
+  <p>楽天APIから指定KWで商品データをインポートし、ネットショップとして販売する。</p>
+  <p><a href="https://github.com/ekatopub/phponlineshoptest">https://github.com/ekatopub/phponlineshoptest</a></p>
+  <h4>開発環境</h4>
+  <p>windows10 VScode XAMPP php8 GitGUI</p>
+  <h4>ロードマップ・開発フェーズ</h4>
+  <h4>Phase1</h4>
+  <p>楽天APIから指定KWで商品データをインポートし、ネットショップとして検索できる→完了</p>
+  <h4>Phase2</h4>
+  <p>楽天APIから指定KWで商品データをインポートし、商品データの手動・自動更新と販売終了商品のアーカイブ化ができる</p>
+  <h4>Phase3</h4>
+  <p>ネットショップとしてユーザー登録や購入、問い合わせができる</p>
+  <h4>Phase4</h4>
+  <p>SEO対策のためにhtmlファイル化やサイトマップ作成、ping送信ができる</p>
+
+
+</body>
+
+</html>

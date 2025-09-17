@@ -1,7 +1,13 @@
 package com.example.demo.service;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +41,11 @@ public class ReservationService {
     public List<TReservation> getReservedListByDate(Timestamp date) {
         return tReservationRepository.findByResDateAndIsDeleted(date, false);
     }
+    public List<TReservation> getReservedListBetween(Timestamp start, Timestamp end) {
+        return tReservationRepository.getReservedListBetween(start, end);
+        
+        
+    }
     
     // 予約状況としてテンプレートに返す前にエラーチェックするメソッド
     public boolean isReserved(List<TReservation> reservedList, Integer roomId, Integer timeId) {
@@ -45,37 +56,97 @@ public class ReservationService {
     // 予約または解除のロジックを処理するメソッド
     @Transactional
     public void processReservation(Timestamp date, String userId, List<ReservationData> reservationData) {
-        // 現在のユーザーの、指定日の全予約を取得
-        List<TReservation> existingReservations = tReservationRepository.findByResDateAndUserId(date, userId);
+        // フォームから送信された「チェック済み」の予約キーをSetに格納
+        Set<String> checkedKeys = reservationData.stream()
+                .filter(ReservationData::isChecked)
+                .map(data -> data.getRoomId() + "_" + data.getTimeId())
+                .collect(Collectors.toSet());
 
-        for (ReservationData data : reservationData) {
-            // 既存の予約をチェック　部屋IDと時間DIが両方一致しているものを探して、既存の予約と重複していないかをチェックする
+        // ログイン中のユーザーの、指定日の全予約を取得
+        // 日付の範囲検索に変更
+        LocalDate targetDate = date.toLocalDateTime().toLocalDate();
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plus(1, ChronoUnit.DAYS).atStartOfDay().minus(1, ChronoUnit.SECONDS);
 
-            boolean isExisting = existingReservations.stream()
-            		.anyMatch(r -> r.getRoomId().equals(Integer.valueOf(data.getRoomId())) && r.getTimeId().equals(Integer.valueOf(data.getTimeId())));
-            		//指定された条件に一致する要素がリスト内に1つでも存在するかどうかをチェック　
-            if (data.isChecked()) {
-                // チェックされている（予約する）場合
-                if (!isExisting) {
-                    // 新規予約を登録
-                    TReservation newReservation = new TReservation();
-                    newReservation.setResDate(date);// TIMESTAMP型に変更した
-                    newReservation.setRoomId(Integer.valueOf(data.getRoomId())); // StringからIntegerに変換
-                    newReservation.setTimeId(Integer.valueOf(data.getTimeId())); // StringからIntegerに変換
-                    newReservation.setUserId(userId);
-                    newReservation.setDeleted(false);
-                    tReservationRepository.save(newReservation);
-                }
-            } else {
-                // チェックされていない（解除する）場合
-                if (isExisting) {
-                    // 既存の予約を削除
-                    existingReservations.stream()
-                    	.filter(r -> r.getRoomId().equals(Integer.valueOf(data.getRoomId())) && r.getTimeId().equals(Integer.valueOf(data.getTimeId())))
-                    	.findFirst()
-                        .ifPresent(tReservationRepository::delete);
-                }
+        Timestamp startDate = Timestamp.valueOf(startOfDay);
+        Timestamp endDate = Timestamp.valueOf(endOfDay);
+
+        // 新しいメソッドを呼び出す
+        List<TReservation> existingReservations = tReservationRepository.findByResDateBetweenAndUserId(startDate, endDate, userId);
+
+        // 既存の予約をループして、チェックが外れたものを削除（論理削除）する
+        for (TReservation existingRes : existingReservations) {
+            String resKey = existingRes.getRoomId() + "_" + existingRes.getTimeId();
+
+            // フォームデータに存在しない（チェックが外れた）場合は論理削除
+            if (!checkedKeys.contains(resKey)) {
+                existingRes.setDeleted(true);
+                tReservationRepository.save(existingRes); // 論理削除
             }
         }
+        
+        // フォームから送信されたチェック済みの予約をループして、新規予約を追加する
+        for (String key : checkedKeys) {
+            String[] ids = key.split("_");
+            Integer roomId = Integer.valueOf(ids[0]);
+            Integer timeId = Integer.valueOf(ids[1]);
+
+            // 既存の予約リストをチェックして、重複していなければ新規追加
+            boolean isNewReservation = existingReservations.stream()
+                    .noneMatch(r -> r.getRoomId().equals(roomId) && r.getTimeId().equals(timeId));
+
+            if (isNewReservation) {
+                TReservation newReservation = new TReservation();
+                newReservation.setResDate(date);
+                newReservation.setRoomId(roomId);
+                newReservation.setTimeId(timeId);
+                newReservation.setUserId(userId);
+                newReservation.setDeleted(false);
+                tReservationRepository.save(newReservation);
+            }
+        }
+    }
+
+  //他人の予約のチェックを外せないようにするための準備　ログインユーザーの予約を取得し、キーのSetに変換
+    public Set<String> getMyReservedKeys(Timestamp date, String userId) {
+        // 対象日の日付範囲を計算
+        LocalDate targetDate = date.toLocalDateTime().toLocalDate();
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plus(1, ChronoUnit.DAYS).atStartOfDay().minus(1, ChronoUnit.SECONDS);
+
+        // ログインユーザーの予約をデータベースから取得
+        List<TReservation> myReservations = tReservationRepository.findByResDateBetweenAndUserId(
+            Timestamp.valueOf(startOfDay),
+            Timestamp.valueOf(endOfDay),
+            userId
+        );
+
+        // 予約がなくても空のSetを返すように変更
+        if (myReservations == null || myReservations.isEmpty()) {
+            return Collections.emptySet(); // 空のSetを返す
+        }
+
+        return myReservations.stream()
+                .map(r -> r.getRoomId() + "_" + r.getTimeId())
+                .collect(Collectors.toSet());
+    }
+    //他人の予約のチェックを外せないようにするための準備2　予約全体を取得し、キーのSetに変換し比較できるようにする
+    public Set<String> getReservedKeys(Timestamp date) {
+        // 対象日の日付範囲を計算
+        LocalDate targetDate = date.toLocalDateTime().toLocalDate();
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.plus(1, ChronoUnit.DAYS).atStartOfDay().minus(1, ChronoUnit.SECONDS);
+
+        // データベースからすべての予約情報を取得（論理削除されたものを除く）
+        List<TReservation> allReservedList = tReservationRepository.findByResDateBetweenAndIsDeleted(
+            Timestamp.valueOf(startOfDay),
+            Timestamp.valueOf(endOfDay),
+            false
+        );
+
+        // 予約キーのセットを作成
+        return allReservedList.stream()
+                .map(r -> r.getRoomId() + "_" + r.getTimeId())
+                .collect(Collectors.toSet());
     }
 }

@@ -52,6 +52,10 @@ public class ReservationController {
     	       Model model,
     	        @RequestParam("date") Optional<String> dateStr
     	    ) {
+    	
+        // ロガーを使用してデバッグログを出力       	
+        logger.debug("getReservationPage is called");
+    	
         // ログインユーザーのユーザー名を取得してモデルに追加
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -75,19 +79,35 @@ public class ReservationController {
         model.addAttribute("timeList", timeList);
         model.addAttribute("roomList", roomList);
         
-     // 予約済みの情報を取得
-        // Date型のdisplayDateをTimestampに変換してリポジトリに渡す
-        Timestamp timestamp = Timestamp.valueOf(displayDate.atStartOfDay());
-        List<TReservation> reservedList = reservationService.getReservedListByDate(timestamp);
-        model.addAttribute("displayDateRaw", displayDate.toString());
-        
-        model.addAttribute("reservedList", reservedList);
-        
-        
         // ロガーを使用してデバッグログを出力
         logger.debug("取得した部屋リスト: {}", roomList);
         logger.debug("取得した時間リスト: {}", timeList);
-        logger.debug("取得した予約リスト: {}", reservedList);
+        
+     // 予約済みの情報を取得
+        // Date型のdisplayDateをTimestampに変換してリポジトリに渡す
+        /*
+        Timestamp timestamp = Timestamp.valueOf(displayDate.atStartOfDay());//時間がマッチしない
+        List<TReservation> reservedList = reservationService.getReservedListByDate(timestamp);
+        model.addAttribute("displayDateRaw", displayDate.toString());
+        model.addAttribute("reservedList", reservedList);
+        */
+        LocalDate targetDate = dateStr.map(LocalDate::parse).orElse(LocalDate.now());
+        model.addAttribute("displayDateRaw", targetDate.toString());
+
+        // resDateの範囲指定用
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
+        Timestamp startTimestamp = Timestamp.valueOf(startOfDay);
+        Timestamp endTimestamp = Timestamp.valueOf(endOfDay);
+
+        // 予約取得（範囲指定）
+        List<TReservation> reservedList = reservationService.getReservedListBetween(startTimestamp, endTimestamp);
+
+        
+        
+        
+
+        //logger.debug("取得した予約リストreservedList: {}", reservedList);
         for (TReservation r : reservedList) {
             logger.debug("Debug reserved: room_id={}, time_id={}", r.getRoomId(), r.getTimeId());
         }
@@ -96,8 +116,8 @@ public class ReservationController {
                 logger.error("Reserved object with null ID found: {}", r);
             }
         }
-
-        
+        // ロガーを使用してデバッグログを出力
+        logger.debug("取得した予約リストreservedList: {}", reservedList);
 
         
         
@@ -120,18 +140,26 @@ public class ReservationController {
         	    }
         	}
         	model.addAttribute("reservedKeys", reservedKeys);	
-        	
-        
-        
+            // ロガーを使用してデバッグログを出力       	
+            logger.debug("取得した予約リストreservedKeys: {}", reservedKeys);
+            
+            
+
+            
             	
         // このメソッドが呼び出されると、予約画面（reservation.html）を表示する
         return "reservation";
     }
     
+ 
     
     @PostMapping("/process")
     public String processReservation(@RequestParam("date") String dateStr,
                                      @RequestParam Map<String, String> formData) {
+        // ロガーを使用してデバッグログを出力       	
+        logger.debug("processReservation is called");
+    	
+    	
         // ログインユーザーIDを取得
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userId = authentication.getName();
@@ -139,6 +167,13 @@ public class ReservationController {
         // 日付をTimestampに変換
         LocalDateTime localDateTime = LocalDate.parse(dateStr).atStartOfDay();
         Timestamp date = Timestamp.valueOf(localDateTime);
+        
+        //デバッグログ
+        formData.forEach((key, value) -> {
+            logger.debug("フォームデータ: key={}, value={}", key, value);
+        });
+
+        
         
         // フォームデータをReservationDataリストに変換
         List<ReservationData> reservationData = new ArrayList<>();
@@ -151,6 +186,7 @@ public class ReservationController {
                     data.setRoomId(matcher.group(1));
                     data.setTimeId(matcher.group(2));
                     data.setChecked(value.equals("true"));
+                    logger.debug("予約データ: roomId={}, timeId={}, checked={}", data.getRoomId(), data.getTimeId(), data.isChecked());
                     reservationData.add(data);
                 }
             }

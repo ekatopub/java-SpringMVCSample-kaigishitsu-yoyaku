@@ -33,9 +33,19 @@
 	        <h3 class="d-inline-block mx-3" th:text="${displayDate}">YYYY/MM/DD</h3>
 	        <a th:href="@{/reservation?date=${nextDate}}" class="btn btn-primary">翌日</a>
 	    </div>
+		
+		
+		<!-- <form id="reservationForm"　method="post" th:action="@{/reservation/process}">
+		    <input type="hidden" name="reservations[1][1]" value="false" />
+		    <input type="checkbox" name="reservations[1][1]" value="true" />
+		    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+		    <button type="submit">送信</button>
+		</form id="reservationForm"> -->
+		
 
-	<form id="reservationForm" action="@{/reservation/process}" method="post">
+	<form id="reservationForm" th:action="@{/reservation/process}" method="post">
 		<input type="hidden" name="date" th:value="${displayDateRaw}" /><!-- POST送信時に date パラメータがコントローラーの @RequestParam("date") に渡される -->
+		<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 		<table class="table table-bordered text-center"><!-- 行（<tr>）が会議室名、列（<td>）が時間帯 -->
 		        <thead>
 		            <tr>
@@ -43,17 +53,23 @@
 		                <th th:each="time : ${timeList}" th:text="${time.timeName}">HH:MM ~ HH:MM</th>
 		            </tr>
 		        </thead>
-		        <tbody><!--    <input type="checkbox" name="reservation"> 仮表示用-->
+		        <tbody><!--  falseは削除情報の送信に必要　#lists.any()の内部でネストされたループを実行するよりも、事前に変換されたSetやListに対するcontains()チェックの方が一般的に高速-->
 		            <tr th:each="room : ${roomList}">
 						<td th:text="${room.roomName}">会議室名</td>
 						<th:block th:each="time : ${timeList}">
-						<td>	
-							<input type="checkbox"
-									th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
-									value="true"
-									th:checked="${reservedKeys.contains(room.id + '_' + time.id)}">
+							<td>
+								<input type="checkbox"
+								       th:id="${'res_' + room.id + '_' + time.id}"
+								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+								       value="true"
+								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
+									   th:disabled="${!myReservedKeys.contains(room.id + '_' + time.id)}" />
 
-		                </td>
+								<input th:if="not ${reservedKeys.contains(room.id + '_' + time.id)}"
+								       type="hidden"
+								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+								       value="false" />
+							</td>
 						</th:block>
 		            </tr>
 		        </tbody>
@@ -70,7 +86,8 @@
 	
 	</div><!-- <div class="content"> -->
 <script th:src="@{/reservation.js}"></script>
-<!-- 	<input type="checkbox"
+<!--<input type="checkbox" name="reservation"> 仮表示用 	
+	<input type="checkbox"
 			th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 			value="true"
 			th:checked="${#lists.any(reservedList, r -> r.getRoomId().equals(room.id) and r.getTimeId().equals(time.id))}">
@@ -93,6 +110,11 @@
 			        </th:block>
 			    </span>
 			</td>
+			以下のようにすると、チェック状態がテンプレートで制御されているため、ユーザー操作が反映されない
+			<input type="checkbox"
+						th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+						value="true"
+						th:checked="${reservedKeys.contains(room.id + '_' + time.id)}">
 			
 -->
 

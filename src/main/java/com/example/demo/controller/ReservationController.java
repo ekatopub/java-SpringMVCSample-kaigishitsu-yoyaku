@@ -215,12 +215,26 @@ public class ReservationController {
         Map<String, Object> result = reservationService.processReservation(date, userId, reservationData);
         
         boolean success = (boolean) result.get("success");
-        String message = (String) result.get("message");
+        //String message = (String) result.get("message");
+        
+        //ログ表示
+        logger.debug("コントローラーでの最終結果: success={}", success);
         
         if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", message);
+            redirectAttributes.addFlashAttribute("successMessage", (String) result.get("message"));
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", message);
+            //redirectAttributes.addFlashAttribute("errorMessage", message);
+            Object messages = result.get("messages");
+            if (messages instanceof List) {
+                // タイプエラーを抑制
+                @SuppressWarnings("unchecked")
+                List<String> errorMessages = (List<String>) messages;
+                redirectAttributes.addFlashAttribute("errorMessages", errorMessages);
+            } else {
+                // ログ表示
+                logger.error("Unexpected type for error messages: {}", messages.getClass().getName());
+                
+            }
         }
         
         // 処理後に元の画面にリダイレクト

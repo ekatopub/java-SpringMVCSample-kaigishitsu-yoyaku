@@ -44,11 +44,11 @@
 		
 		
 		<div th:if="${successMessage}" class="alert alert-success" role="alert">
-		    <p th:text="${successMessage}"></p>
+		    <p th:text="#{${successMessage}}"></p>
 		</div>
 
-		<div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-		    <p th:text="#{${errorMessage}}"></p>
+		<div th:if="${errorMessages}" class="alert alert-danger" role="alert">
+		    <li th:each="msgKey : ${errorMessages}" th:text="#{${msgKey}}"></li>
 		</div>
 		
 
@@ -71,8 +71,7 @@
 								       th:id="${'res_' + room.id + '_' + time.id}"
 								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 								       value="true"
-								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
-									   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id))  or T(java.time.LocalDateTime).of(internalDate, T(java.time.LocalTime).of(T(java.lang.Integer).parseInt(time.timeName.replace('時', '')), 0)).isBefore(currentDateTime)}"  />
+								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" />
 
 								<input th:if="not ${reservedKeys.contains(room.id + '_' + time.id)}"
 								       type="hidden"
@@ -130,6 +129,10 @@
 						       value="true"
 						       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
 							   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id))  or internalDate.isBefore(T(java.time.LocalDate).now())}"  />
+							   
+							   //時間を追加
+							   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id))  or T(java.time.LocalDateTime).of(internalDate, T(java.time.LocalTime).parse(time.timeName.replace('時', ''))).isBefore(currentDateTime)}"  />
+
 			
 -->
 

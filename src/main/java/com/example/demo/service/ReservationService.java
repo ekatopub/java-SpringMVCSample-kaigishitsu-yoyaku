@@ -5,17 +5,22 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.controller.ReservationController;
 import com.example.demo.model.MRoom;
 import com.example.demo.model.MTime;
 import com.example.demo.model.TReservation;
@@ -28,6 +33,7 @@ public class ReservationService {
     private final MTimeRepository mTimeRepository;
     private final MRoomRepository mRoomRepository;
     private final TReservationRepository tReservationRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
 
     public ReservationService(MTimeRepository mTimeRepository, MRoomRepository mRoomRepository, TReservationRepository tReservationRepository) {
         this.mTimeRepository = mTimeRepository;
@@ -63,18 +69,21 @@ public class ReservationService {
     	
     	
         Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
+        response.put("success", true);//初期化
+        List<String> errorMessages = new ArrayList<>();
     	
     	
         // 日付が過去のものでないかチェック
         LocalDateTime now = LocalDateTime.now();
         LocalDate reservationDate = date.toLocalDateTime().toLocalDate();
         if (reservationDate.isBefore(now.toLocalDate())) {
-            response.put("message", "error.pastReservation");
-            return response;
+        	errorMessages.add("error.pastReservation");
+            //response.put("success", false);
+            //return response;
         }
-    	
-    	
+        // ロガーを使用してデバッグログを出力       	
+        logger.debug("エラーメッセージリスト: {}", errorMessages);
+
     	
         // フォームから送信された「チェック済み」の予約キーをSetに格納
         Set<String> checkedKeys = reservationData.stream()
@@ -91,8 +100,24 @@ public class ReservationService {
         Timestamp startDate = Timestamp.valueOf(startOfDay);
         Timestamp endDate = Timestamp.valueOf(endOfDay);
 
-        // 新しいメソッドを呼び出す
-        List<TReservation> existingReservations = tReservationRepository.findByResDateBetweenAndUserId(startDate, endDate, userId);
+         List<TReservation> existingReservations = tReservationRepository.findByResDateBetweenAndUserId(startDate, endDate, userId);
+         Set<String> existingKeys = existingReservations.stream()
+                 .map(r -> r.getRoomId() + "_" + r.getTimeId())
+                 .collect(Collectors.toSet());
+         
+         //変更の有無を先にチェックし、変化がない場合のメッセージを先に設定
+         Set<String> addedKeys = new HashSet<>(checkedKeys);
+         addedKeys.removeAll(existingKeys);
+
+         Set<String> removedKeys = new HashSet<>(existingKeys);
+         removedKeys.removeAll(checkedKeys);
+
+         // If no changes were made, return without processing
+         if (addedKeys.isEmpty() && removedKeys.isEmpty()) {
+             response.put("message", "success.noChange");
+             return response;
+         }
+         
 
         // 既存の予約をループして、チェックが外れたものを削除（論理削除）する
         for (TReservation existingRes : existingReservations) {
@@ -116,15 +141,16 @@ public class ReservationService {
                     LocalDateTime existingResDateTime = LocalDateTime.of(existingResDate, reservationTime);
 
                     if (existingResDateTime.isBefore(now)) {
-                    	response.put("message", "error.pastCancellation");
-                        return response;
+                        response.put("success", false);
+                    	errorMessages.add("error.pastCancellation"); 
+                        break;
                 } else {  //過去でなければ削除
                 existingRes.setDeleted(true);                                
                 tReservationRepository.save(existingRes); // 論理削除
-                response.put("success", true);
-                response.put("message", "予約が正常に変更されました。");
+                //response.put("success", true);
+                response.put("message", "success.reservation");
                 
-                return response;
+                //return response;
                 }
                 }
             }//if
@@ -141,6 +167,23 @@ public class ReservationService {
                     .noneMatch(r -> r.getRoomId().equals(roomId) && r.getTimeId().equals(timeId));
 
             if (isNewReservation) {
+                // MTimeオブジェクトをtimeIdから取得
+                Optional<MTime> optionalMTime = mTimeRepository.findById(timeId);
+
+                if (optionalMTime.isPresent()) {
+                    MTime mTime = optionalMTime.get();
+                    
+                    // timeNameからLocalTimeを抽出
+                    String timeName = mTime.getTimeName();
+                    int hour = Integer.parseInt(timeName.replace("時", ""));
+                    LocalTime reservationTime = LocalTime.of(hour, 0);
+
+                    // 予約日時 (newResDateTime) を作成
+                    LocalDate newReservationDate = date.toLocalDateTime().toLocalDate();
+                    LocalDateTime newResDateTime = LocalDateTime.of(newReservationDate, reservationTime);
+
+                    // 作成した日時が過去でなければ予約を追加
+                    if (!newResDateTime.isBefore(now)) {
                 TReservation newReservation = new TReservation();
                 newReservation.setResDate(date);
                 newReservation.setRoomId(roomId);
@@ -148,10 +191,29 @@ public class ReservationService {
                 newReservation.setUserId(userId);
                 newReservation.setDeleted(false);
                 tReservationRepository.save(newReservation);
+                    } else {
+                        // 過去の時間の予約は許可しない
+                        // エラーメッセージをセットして処理を中断
+                        //response.put("success", false);
+                    	errorMessages.add("error.attemptToMakePastReservation"); 
+                        break;
+
+                     //   return response; 
+                    }//if
+                }//if
             }//if
         }//for
+        if (!errorMessages.isEmpty()) {
+            response.put("success", false);
+            response.put("messages", errorMessages);
+            
+            // ロガーを使用してデバッグログを出力       	
+            logger.debug("予約処理結果: 失敗。エラーメッセージリスト: {}", errorMessages);
+        } else {
         response.put("success", true);
-        response.put("message", "予約が正常に変更されました。");
+        response.put("message", "success.reservation");
+        logger.debug("予約処理結果: 成功。");
+        }
         
         return response;
     }//processReservation

@@ -42,6 +42,15 @@
 		    <button type="submit">送信</button>
 		</form id="reservationForm"> -->
 		
+		
+		<div th:if="${successMessage}" class="alert alert-success" role="alert">
+		    <p th:text="${successMessage}"></p>
+		</div>
+
+		<div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+		    <p th:text="#{${errorMessage}}"></p>
+		</div>
+		
 
 	<form id="reservationForm" th:action="@{/reservation/process}" method="post">
 		<input type="hidden" name="date" th:value="${displayDateRaw}" /><!-- POST送信時に date パラメータがコントローラーの @RequestParam("date") に渡される -->
@@ -63,7 +72,7 @@
 								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 								       value="true"
 								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
-									   th:disabled="${reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id)}" />
+									   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id))  or T(java.time.LocalDateTime).of(internalDate, T(java.time.LocalTime).of(T(java.lang.Integer).parseInt(time.timeName.replace('時', '')), 0)).isBefore(currentDateTime)}"  />
 
 								<input th:if="not ${reservedKeys.contains(room.id + '_' + time.id)}"
 								       type="hidden"
@@ -115,6 +124,12 @@
 						th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 						value="true"
 						th:checked="${reservedKeys.contains(room.id + '_' + time.id)}">
+						<input type="checkbox"
+						       th:id="${'res_' + room.id + '_' + time.id}"
+						       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
+						       value="true"
+						       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" 
+							   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id))  or internalDate.isBefore(T(java.time.LocalDate).now())}"  />
 			
 -->
 

@@ -3,9 +3,13 @@ package com.example.demo.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,7 +59,23 @@ public class ReservationService {
     
     // 予約または解除のロジックを処理するメソッド
     @Transactional
-    public void processReservation(Timestamp date, String userId, List<ReservationData> reservationData) {
+    public Map<String, Object> processReservation(Timestamp date, String userId, List<ReservationData> reservationData) {
+    	
+    	
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+    	
+    	
+        // 日付が過去のものでないかチェック
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate reservationDate = date.toLocalDateTime().toLocalDate();
+        if (reservationDate.isBefore(now.toLocalDate())) {
+            response.put("message", "error.pastReservation");
+            return response;
+        }
+    	
+    	
+    	
         // フォームから送信された「チェック済み」の予約キーをSetに格納
         Set<String> checkedKeys = reservationData.stream()
                 .filter(ReservationData::isChecked)
@@ -80,10 +100,35 @@ public class ReservationService {
 
             // フォームデータに存在しない（チェックが外れた）場合は論理削除
             if (!checkedKeys.contains(resKey)) {
-                existingRes.setDeleted(true);
+
+                
+                //過去の予約を削除できないようチェック
+                Optional<MTime> optionalMTime = mTimeRepository.findById(existingRes.getTimeId());//Optionalは「nullかもしれない値」を上手に取り扱うためのクラス
+                
+                if (optionalMTime.isPresent()) {
+                    MTime mTime = optionalMTime.get();
+                    
+                    String timeName = mTime.getTimeName();
+                    int hour = Integer.parseInt(timeName.replace("時", ""));//"9時"などから変換
+                    LocalTime reservationTime = LocalTime.of(hour, 0); 
+               
+                    LocalDate existingResDate = existingRes.getResDate().toLocalDateTime().toLocalDate();
+                    LocalDateTime existingResDateTime = LocalDateTime.of(existingResDate, reservationTime);
+
+                    if (existingResDateTime.isBefore(now)) {
+                    	response.put("message", "error.pastCancellation");
+                        return response;
+                } else {  //過去でなければ削除
+                existingRes.setDeleted(true);                                
                 tReservationRepository.save(existingRes); // 論理削除
-            }
-        }
+                response.put("success", true);
+                response.put("message", "予約が正常に変更されました。");
+                
+                return response;
+                }
+                }
+            }//if
+        }//for
         
         // フォームから送信されたチェック済みの予約をループして、新規予約を追加する
         for (String key : checkedKeys) {
@@ -103,9 +148,13 @@ public class ReservationService {
                 newReservation.setUserId(userId);
                 newReservation.setDeleted(false);
                 tReservationRepository.save(newReservation);
-            }
-        }
-    }
+            }//if
+        }//for
+        response.put("success", true);
+        response.put("message", "予約が正常に変更されました。");
+        
+        return response;
+    }//processReservation
 
   //他人の予約のチェックを外せないようにするための準備　ログインユーザーの予約を取得し、キーのSetに変換
     public Set<String> getMyReservedKeys(Timestamp date, String userId) {

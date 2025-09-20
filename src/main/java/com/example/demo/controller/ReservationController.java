@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.example.demo.model.MRoom;
 import com.example.demo.model.MTime;
@@ -67,10 +68,12 @@ public class ReservationController {
         Timestamp date = Timestamp.valueOf(displayDate.atStartOfDay());
          
         // 取得したデータをモデルに追加
+        model.addAttribute("internalDate", displayDate);
         model.addAttribute("displayDate", displayDate.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日")));
         model.addAttribute("previousDate", displayDate.minusDays(1));
         model.addAttribute("nextDate", displayDate.plusDays(1));
         model.addAttribute("displayDateRaw", displayDate.toString());
+        model.addAttribute("currentDateTime", LocalDateTime.now());
         
 
         // マスタデータを取得
@@ -170,7 +173,8 @@ public class ReservationController {
     
     @PostMapping("/process")
     public String processReservation(@RequestParam("date") String dateStr,
-                                     @RequestParam Map<String, String> formData) {
+                                     @RequestParam Map<String, String> formData,
+                                     RedirectAttributes redirectAttributes) {
         // ロガーを使用してデバッグログを出力       	
         logger.debug("processReservation is called");
     	
@@ -208,7 +212,16 @@ public class ReservationController {
         });
         
         // 予約サービスを呼び出して処理を実行
-        reservationService.processReservation(date, userId, reservationData);
+        Map<String, Object> result = reservationService.processReservation(date, userId, reservationData);
+        
+        boolean success = (boolean) result.get("success");
+        String message = (String) result.get("message");
+        
+        if (success) {
+            redirectAttributes.addFlashAttribute("successMessage", message);
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", message);
+        }
         
         // 処理後に元の画面にリダイレクト
         return "redirect:/reservation/?date=" + dateStr;

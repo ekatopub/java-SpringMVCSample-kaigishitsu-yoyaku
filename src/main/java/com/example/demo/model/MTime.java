@@ -17,10 +17,14 @@ public class MTime {
     private Integer id;
 
     @Column(name = "name", length = 10, nullable = false)
-    private String timeName;
+    private String timeName;//9時,10時,,,17時
     
     @Column(name = "is_deleted",  nullable = false)
     private boolean timeIsDeleted;
+    
+    public String getTimeName() {
+        return timeName;
+    }
 }
 
 //@Dataアノテーション =Lombokがコンパイル時にゲッター、セッター、toString()、equals()、hashCode()、およびrequiredArgsConstructorを自動的に生成する

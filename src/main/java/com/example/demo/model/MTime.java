@@ -10,6 +10,8 @@ import lombok.Data;
 @Entity
 @Table(name = "m_time")
 @Data
+//@AllArgsConstructor
+//@NoArgsConstructor
 public class MTime {
 
     @Id

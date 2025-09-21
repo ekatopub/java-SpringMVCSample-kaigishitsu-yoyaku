@@ -1,18 +1,22 @@
 package com.example.demo.controller;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -35,15 +39,22 @@ public class ReservationController {
 	
     private final UserService userService;
     private final ReservationService reservationService;
+    private final MessageSource messageSource;
+    private final Clock clock;
     private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
 
 
-    public ReservationController(UserService userService, ReservationService reservationService) {
+    public ReservationController(UserService userService, ReservationService reservationService, MessageSource messageSource,Clock clock) {
         this.userService = userService;
         this.reservationService = reservationService;
+        this.messageSource = messageSource;
+        this.clock = clock;
 
     }//Springは、コンストラクタの引数にUserServiceインターフェースが指定されていると、自動的にその唯一の実装クラス（UserServiceImpl）を探して注入してくれる
 	
+    public LocalDateTime getCurrentTime() {
+        return LocalDateTime.now(clock);
+    }
 
     @GetMapping({"/", ""}) //  .defaultSuccessUrl("/reservation/", true)の最後のスラッシュに対応
     public String getReservationPage(
@@ -52,6 +63,7 @@ public class ReservationController {
     	
         // ロガーを使用してデバッグログを出力       	
         logger.debug("getReservationPage is called");
+        logger.debug("ゲットメソッドのモデル: {}", model.asMap());
     	
         // ログインユーザーのユーザー名を取得してモデルに追加
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -221,22 +233,37 @@ public class ReservationController {
         logger.debug("コントローラーでの最終結果: success={}", success);
         
         if (success) {
-            redirectAttributes.addFlashAttribute("successMessage", (String) result.get("message"));
+            String messageKey = (String) result.get("message");
+            String successMessage = messageSource.getMessage(messageKey, null, Locale.JAPAN);
+            redirectAttributes.addFlashAttribute("successMessage", successMessage);//リダイレクト後のリクエストにデータを渡すために使用
         } else {
             //redirectAttributes.addFlashAttribute("errorMessage", message);
             Object messages = result.get("messages");
             if (messages instanceof List) {
                 // タイプエラーを抑制
                 @SuppressWarnings("unchecked")
+                /*　エラーが累積表示されてしまうので、整理する
                 List<String> errorMessages = (List<String>) messages;
                 redirectAttributes.addFlashAttribute("errorMessages", errorMessages);
+                */
+                
+                List<String> errorKeys = (List<String>) result.get("messages");
+                String joinedMessage = errorKeys.stream()
+                        .map(key -> messageSource.getMessage(key, null, "メッセージが見つかりません。", Locale.JAPAN))
+                        .collect(Collectors.joining("。"));
+
+                redirectAttributes.addFlashAttribute("errorMessages", joinedMessage);//リダイレクト後のリクエストにデータを渡すために使用
+
+                
+                
             } else {
                 // ログ表示
-                logger.error("Unexpected type for error messages: {}", messages.getClass().getName());
+                logger.error("予期しないエラーメッセージ: {}", messages.getClass().getName());
                 
             }
+            
         }
-        
+        logger.debug("RedirectAttributes: {}", redirectAttributes.getFlashAttributes());
         // 処理後に元の画面にリダイレクト
         return "redirect:/reservation/?date=" + dateStr;
     }

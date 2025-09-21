@@ -7,4 +7,9 @@ public class ReservationData {
     private String roomId;
     private String timeId;
     private boolean checked;
+    
+    
+
 }
+
+

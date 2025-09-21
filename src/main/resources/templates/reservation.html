@@ -44,12 +44,20 @@
 		
 		
 		<div th:if="${successMessage}" class="alert alert-success" role="alert">
-		    <p th:text="#{${successMessage}}"></p>
+		    <p th:text="${successMessage}"></p>
 		</div>
 
 		<div th:if="${errorMessages}" class="alert alert-danger" role="alert">
-		    <li th:each="msgKey : ${errorMessages}" th:text="#{${msgKey}}"></li>
+			<ul>
+		    <li th:text="${errorMessages}"></li>
+			</ul>
 		</div>
+		<!-- ログ出力用 -->
+		<script th:if="${errorMessages}">
+		    var errorMessage = /*[[${errorMessages}]]*/ 'default message';
+		    console.log("サーバーからのerrorMessage:");
+			console.log(errorMessage);
+		</script>
 		
 
 	<form id="reservationForm" th:action="@{/reservation/process}" method="post">
@@ -71,7 +79,8 @@
 								       th:id="${'res_' + room.id + '_' + time.id}"
 								       th:name="${'reservations[' + room.id + '][' + time.id + ']'}"
 								       value="true"
-								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}" />
+								       th:checked="${reservedKeys.contains(room.id + '_' + time.id)}"
+									   th:disabled="${(reservedKeys.contains(room.id + '_' + time.id) and !myReservedKeys.contains(room.id + '_' + time.id)) or T(java.time.LocalDateTime).of(internalDate, T(java.time.LocalTime).of(T(java.lang.Integer).parseInt(time.timeName.replace('時', '')), 0)).isBefore(currentDateTime)}"/>
 
 								<input th:if="not ${reservedKeys.contains(room.id + '_' + time.id)}"
 								       type="hidden"

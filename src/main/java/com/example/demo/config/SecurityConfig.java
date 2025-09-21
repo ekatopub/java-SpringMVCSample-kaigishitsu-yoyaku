@@ -35,7 +35,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .antMatchers("/login").permitAll()
-                .antMatchers("/webjars/**", "/css/**", "/js/**", "custom.css").permitAll()
+                .antMatchers("/webjars/**", "/css/**", "/js/**", "/custom.css").permitAll()
                 .antMatchers("/h2-console/**").permitAll() // H2コンソール用
                 .anyRequest().authenticated()
             )

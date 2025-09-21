@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +35,20 @@ public class ReservationService {
     private final MTimeRepository mTimeRepository;
     private final MRoomRepository mRoomRepository;
     private final TReservationRepository tReservationRepository;
+    private final MessageSource messageSource;
+    private final Clock clock;
     private static final Logger logger = LoggerFactory.getLogger(ReservationController.class);
 
-    public ReservationService(MTimeRepository mTimeRepository, MRoomRepository mRoomRepository, TReservationRepository tReservationRepository) {
+    public ReservationService(MTimeRepository mTimeRepository, MRoomRepository mRoomRepository, TReservationRepository tReservationRepository,MessageSource messageSource,Clock clock) {
         this.mTimeRepository = mTimeRepository;
         this.mRoomRepository = mRoomRepository;
         this.tReservationRepository = tReservationRepository;
+        this.messageSource = messageSource;
+        this.clock = clock;
+    }
+    
+    public LocalDateTime getCurrentTime() {
+        return LocalDateTime.now(clock);
     }
 
     public List<MTime> getAllTimes() {
@@ -195,7 +205,7 @@ public class ReservationService {
                         // 過去の時間の予約は許可しない
                         // エラーメッセージをセットして処理を中断
                         //response.put("success", false);
-                    	errorMessages.add("error.attemptToMakePastReservation"); 
+                    	errorMessages.add(String.format("error.attemptToMakePastReservation", timeName)); 
                         break;
 
                      //   return response; 

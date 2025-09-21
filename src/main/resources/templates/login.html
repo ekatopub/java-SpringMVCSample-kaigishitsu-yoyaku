@@ -5,15 +5,17 @@
 	<title>Sample Login</title>
 	<link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/custom.css}">
-	<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>	
-	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}" defer></script>
+	<!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script> -->
 	<script th:src="@{/webjars/jquery/jquery.min.js}" defer></script>
+	<script th:src="@{/webjars/bootstrap/js/bootstrap.min.js}" defer></script>
 </head>
 <body class="bg-light"> <!-- <body> -->
 	<div class="content">
 	<div class="text-center">
 		<h2 th:text="#{login.title}"></h2>
-	    <form id="login_form" method="post" th:action="@{/login}" th:object="${loginModel}"><!--actionがSpring Securityの認証プロセスを開始するために必要 -->
+	    <form id="login_form" method="post" th:action="@{/login}" th:object="${loginModel}">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+		<!-- actionがSpring Securityの認証プロセスを開始するために必要 -->
 		<!-- Spring Securityのエラーメッセージ -->
 <!--		<p th:if="${session['SPRING_SECURITY_LAST_EXCEPTION']} != null" th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}" class="text-danger">-->
 			<!-- Spring Security + IDを使ったエラーメッセージ -->
